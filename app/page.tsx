@@ -106,14 +106,14 @@ function BookButton({
       setMsg('予約は確定しましたが、確認メール送信に失敗しました。後ほど再送します。');
       console.error(mailErr);
     } else {
-      setMsg('予約が確定しました！確認メールをお送りしました。ご来院お待ちしております。');
+      setMsg('ご予約が完了しました！✨ 確認メールをお送りしましたので、ご確認ください。ご来院を心よりお待ちしております。');
     }
 
     // 閉じる＋一覧更新（少し待ってから）
     setTimeout(() => {
       setOpen(false);
       onBooked?.();
-    }, 800);
+    }, 1200);
   };
 
   return (
@@ -121,12 +121,12 @@ function BookButton({
       {/* ===== EDITABLE: UI (start) ===== */}
       <button 
         type="button"
-        className="btn btn-primary" 
+        className="btn btn-primary btn-reserve" 
         onClick={() => setOpen(true)}
         aria-label="この時間枠を予約する"
       >
         <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
         予約する
       </button>
@@ -137,32 +137,52 @@ function BookButton({
           <div 
             className="modal-backdrop"
             onClick={() => setOpen(false)}
+            aria-label="モーダルを閉じる"
           />
           <div className="modal-wrapper">
             <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
               {/* ===== EDITABLE: UI (start) ===== */}
               <div className="modal-header">
-                <h2 id="modal-title" className="modal-title">
-                  <svg className="icon icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <div className="modal-header-icon">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  ご予約情報の入力
-                </h2>
-                <p className="modal-subtitle">
-                  以下の情報をご入力ください
-                </p>
+                </div>
+                <div>
+                  <h2 id="modal-title" className="modal-title">
+                    ご予約情報の入力
+                  </h2>
+                  <p className="modal-subtitle">
+                    以下の項目をご入力いただき、予約を確定してください
+                  </p>
+                </div>
               </div>
 
               <div className="modal-body">
+                <div className="booking-time-info">
+                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <div>
+                    <div className="booking-date">{fmtJST(slot.start_at_utc).split(' ')[0]}</div>
+                    <div className="booking-time">
+                      {fmtJST(slot.start_at_utc).split(' ')[1]} - {fmtJST(slot.end_at_utc).split(' ')[1]}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="form-group">
                   <label htmlFor="customer-name" className="form-label">
+                    <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                     お名前 <span className="required">*</span>
                   </label>
                   <input
                     id="customer-name"
                     type="text"
                     className="form-input"
-                    placeholder="山田 太郎"
+                    placeholder="例）山田 太郎"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -172,33 +192,45 @@ function BookButton({
 
                 <div className="form-group">
                   <label htmlFor="customer-phone" className="form-label">
-                    電話番号 <span className="optional">（任意）</span>
+                    <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    お電話番号 <span className="optional">（任意）</span>
                   </label>
                   <input
                     id="customer-phone"
                     type="tel"
                     className="form-input"
-                    placeholder="090-1234-5678"
+                    placeholder="例）090-1234-5678"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    aria-label="電話番号を入力"
                   />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="customer-email" className="form-label">
+                    <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
                     メールアドレス <span className="required">*</span>
                   </label>
                   <input
                     id="customer-email"
                     type="email"
                     className="form-input"
-                    placeholder="example@email.com"
+                    placeholder="例）example@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     aria-required="true"
                   />
-                  <p className="form-help">確認メールをお送りします</p>
+                  <p className="form-help">
+                    <svg className="icon icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    ご入力いただいたメールアドレスに予約確認メールをお送りします
+                  </p>
                 </div>
               </div>
 
@@ -207,12 +239,16 @@ function BookButton({
                   type="button"
                   className="btn btn-secondary" 
                   onClick={() => setOpen(false)}
+                  aria-label="予約をキャンセルして閉じる"
                 >
+                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   キャンセル
                 </button>
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-submit"
                   onClick={submit}
                   disabled={!name || !email}
                   aria-disabled={!name || !email}
@@ -225,7 +261,18 @@ function BookButton({
               </div>
 
               {msg && (
-                <div className={`message ${msg.includes('確定') ? 'message-success' : msg.includes('失敗') ? 'message-error' : 'message-info'}`} role="status" aria-live="polite">
+                <div className={`message ${msg.includes('完了') ? 'message-success' : msg.includes('失敗') ? 'message-error' : 'message-info'}`} role="status" aria-live="polite">
+                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {msg.includes('完了') && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
+                    {msg.includes('失敗') && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
+                    {!msg.includes('完了') && !msg.includes('失敗') && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
+                  </svg>
                   {msg}
                 </div>
               )}
@@ -288,24 +335,34 @@ export default function Page() {
           <div className="header-content">
             <div className="header-icon">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <div>
-              <h1 className="page-title">オンライン予約</h1>
-              <p className="page-subtitle">ご希望の店舗とスタッフをお選びください</p>
+            <div className="header-text">
+              <h1 className="page-title">整体院 オンライン予約</h1>
+              <p className="page-subtitle">
+                <svg className="icon icon-inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                まずは店舗とスタッフをお選びください
+              </p>
             </div>
           </div>
         </header>
 
         <main className="page-main">
           <section className="filter-section">
-            <h2 className="section-title">
-              <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-              </svg>
-              条件を選択
-            </h2>
+            <div className="section-header">
+              <h2 className="section-title">
+                <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                ご予約条件の選択
+              </h2>
+              <p className="section-description">
+                ご希望の店舗と担当スタッフをお選びください
+              </p>
+            </div>
             
             <div className="filter-grid">
               <div className="form-group">
@@ -313,22 +370,27 @@ export default function Page() {
                   <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  店舗
+                  店舗を選択
                 </label>
-                <select
-                  id="store-select"
-                  className="form-select"
-                  value={store}
-                  onChange={(e) => { setStore(e.target.value); setPerson(''); }}
-                  aria-label="店舗を選択"
-                >
-                  <option value="">店舗を選択してください</option>
-                  {stores.map((s) => (
-                    <option key={s.store_id} value={s.store_id}>
-                      {s.name ?? s.store_id}
-                    </option>
-                  ))}
-                </select>
+                <div className="select-wrapper">
+                  <select
+                    id="store-select"
+                    className="form-select"
+                    value={store}
+                    onChange={(e) => { setStore(e.target.value); setPerson(''); }}
+                    aria-label="店舗を選択してください"
+                  >
+                    <option value="">店舗を選んでください</option>
+                    {stores.map((s) => (
+                      <option key={s.store_id} value={s.store_id}>
+                        {s.name ?? s.store_id}
+                      </option>
+                    ))}
+                  </select>
+                  <svg className="select-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
               <div className="form-group">
@@ -336,63 +398,98 @@ export default function Page() {
                   <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  担当スタッフ
+                  担当スタッフを選択
                 </label>
-                <select
-                  id="staff-select"
-                  className="form-select"
-                  value={person}
-                  onChange={(e) => setPerson(e.target.value)}
-                  disabled={!store}
-                  aria-label="スタッフを選択"
-                >
-                  <option value="">スタッフを選択してください</option>
-                  {staffOfStore.map((m) => (
-                    <option key={m.staff_id} value={m.staff_id}>
-                      {m.display_name ?? m.staff_id}
-                    </option>
-                  ))}
-                </select>
+                <div className="select-wrapper">
+                  <select
+                    id="staff-select"
+                    className="form-select"
+                    value={person}
+                    onChange={(e) => setPerson(e.target.value)}
+                    disabled={!store}
+                    aria-label="スタッフを選択してください"
+                  >
+                    <option value="">スタッフを選んでください</option>
+                    {staffOfStore.map((m) => (
+                      <option key={m.staff_id} value={m.staff_id}>
+                        {m.display_name ?? m.staff_id}
+                      </option>
+                    ))}
+                  </select>
+                  <svg className="select-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                {!store && (
+                  <p className="form-help">
+                    <svg className="icon icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    まず店舗を選択してください
+                  </p>
+                )}
               </div>
             </div>
           </section>
 
           <section className="slots-section">
-            <h2 className="section-title">
-              <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              予約可能な時間枠
-            </h2>
+            <div className="section-header">
+              <h2 className="section-title">
+                <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                予約可能な時間枠
+              </h2>
+              <p className="section-description">
+                ご希望の日時をお選びいただき、ご予約ください
+              </p>
+            </div>
 
             {(!store || !person) ? (
               <div className="empty-state">
-                <svg className="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="empty-text">店舗と担当スタッフを選択すると、<br />予約可能な時間枠が表示されます</p>
+                <div className="empty-icon-wrapper">
+                  <svg className="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="empty-title">予約枠を表示する準備ができました</h3>
+                <p className="empty-text">
+                  上記のフォームから店舗と担当スタッフを選択すると、<br />
+                  予約可能な時間枠が表示されます
+                </p>
               </div>
             ) : slots.length === 0 ? (
               <div className="empty-state">
-                <svg className="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="empty-text">現在予約可能な時間枠はありません</p>
+                <div className="empty-icon-wrapper empty-icon-wrapper-warning">
+                  <svg className="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="empty-title">現在予約可能な時間枠がありません</h3>
+                <p className="empty-text">
+                  別の店舗またはスタッフをお選びいただくか、<br />
+                  後ほど再度お試しください
+                </p>
               </div>
             ) : (
               <ul className="slots-list">
                 {slots.map((sl) => (
                   <li key={sl.slot_id} className="slot-item">
                     <div className="slot-time">
-                      <svg className="icon slot-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
+                      <div className="slot-icon-wrapper">
+                        <svg className="slot-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="time-info">
+                        <div className="time-date">
+                          <svg className="icon icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {fmtJST(sl.start_at_utc).split(' ')[0]}
+                        </div>
                         <div className="time-range">
                           {fmtJST(sl.start_at_utc).split(' ')[1]} - {fmtJST(sl.end_at_utc).split(' ')[1]}
-                        </div>
-                        <div className="time-date">
-                          {fmtJST(sl.start_at_utc).split(' ')[0]}
                         </div>
                       </div>
                     </div>
@@ -400,12 +497,12 @@ export default function Page() {
                     {sl.status === 'open' ? (
                       <BookButton slot={sl} onBooked={fetchSlots} />
                     ) : (
-                      <span className="badge badge-booked">
+                      <div className="badge badge-booked">
                         <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                         予約済み
-                      </span>
+                      </div>
                     )}
                   </li>
                 ))}
@@ -415,9 +512,14 @@ export default function Page() {
         </main>
 
         <footer className="page-footer">
-          <p className="footer-text">
-            ご不明な点がございましたら、お気軽にお問い合わせください
-          </p>
+          <div className="footer-content">
+            <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="footer-text">
+              ご不明な点やご質問がございましたら、お気軽にお問い合わせください
+            </p>
+          </div>
         </footer>
       </div>
       {/* ===== EDITABLE: UI (end) ===== */}
