@@ -34,7 +34,7 @@ function fmtJST(iso: string) {
     .replace(/\//g, '-');
 }
 
-/** モーダル：お客様情報 → reserve_slot RPC → Edge Functionで確認メール送信 */
+/** モーダル:お客様情報 → reserve_slot RPC → Edge Functionで確認メール送信 */
 function BookButton({
   slot,
   onBooked,
@@ -293,20 +293,26 @@ function BookButton({
                   <div className="message-content">
                     <p>{msg}</p>
 
-                    {/* 予約完了/メール失敗どちらでも、フォームCTAを太字で追記 */}
-                    <div className="questionnaire-cta">
-                      <p className="cta-title">ご来院前のご協力をお願いいたします</p>
-                      <a
-                        href={QUESTIONNAIRE_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-cta"
-                        aria-label="事前問診フォームを新しいタブで開く"
-                      >
-                        事前問診フォームを開く
-                      </a>
-                      <p className="cta-help">※ 所要時間 1〜2 分。送信後もこの画面は閉じません。</p>
-                    </div>
+                    {/* 予約完了/メール失敗どちらでも、フォームCTAを強調表示 */}
+                    {finished && (
+                      <div className="questionnaire-cta">
+                        <p className="cta-title">📋 ご来院前のご協力をお願いいたします</p>
+                        <a
+                          href={QUESTIONNAIRE_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-cta"
+                          aria-label="事前問診フォームを新しいタブで開く"
+                        >
+                          <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                          </svg>
+                          事前問診フォームを開く
+                        </a>
+                        <p className="cta-help">所要時間 1〜2 分。送信後もこの画面は閉じません。</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -326,7 +332,7 @@ export default function Page() {
   const [store,  setStore]  = useState<string>('');
   const [person, setPerson] = useState<string>('');
 
-  // 初期ロード：店舗・スタッフ
+  // 初期ロード:店舗・スタッフ
   useEffect(() => {
     (async () => {
       const { data: st } = await supabase.from('stores').select('store_id,name').order('store_id');
@@ -390,14 +396,6 @@ export default function Page() {
               <p className="section-description">
                 ご希望の店舗と担当スタッフをお選びください
               </p>
-              {/* ページ上でもフォーム導線を常に提示（UIは控えめ） */}
-              <div className="notice subtle">
-                ご予約後は
-                <a href={QUESTIONNAIRE_URL} target="_blank" rel="noopener noreferrer" className="link-cta">
-                  事前問診フォーム
-                </a>
-                のご入力をお願いします。
-              </div>
             </div>
 
             <div className="filter-grid">
