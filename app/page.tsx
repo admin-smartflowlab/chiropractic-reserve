@@ -80,7 +80,7 @@ function BookButton({
       setMsg('予約は確定しましたが、確認メール送信に失敗しました。後ほど再送します。');
       console.error(mailErr);
     } else {
-      setMsg('予約が確定しました！確認メールを送信しました。ありがとうございます。');
+      setMsg('予約が確定しました！確認メールをお送りしました。ご来院お待ちしております。');
     }
 
     // 閉じる＋一覧更新（少し待ってから）
@@ -92,45 +92,113 @@ function BookButton({
 
   return (
     <>
-      <button className="border px-3 py-1 rounded" onClick={() => setOpen(true)}>
-        予約
+      {/* ===== EDITABLE: UI (start) ===== */}
+      <button 
+        type="button"
+        className="btn btn-primary" 
+        onClick={() => setOpen(true)}
+        aria-label="この時間枠を予約する"
+      >
+        <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        予約する
       </button>
+      {/* ===== EDITABLE: UI (end) ===== */}
 
       {open && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-          <div className="bg-white p-4 rounded shadow w-[360px] space-y-2">
-            <h2 className="font-semibold">お客様情報</h2>
-            <input
-              className="border w-full p-2"
-              placeholder="お名前 *"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <input
-              className="border w-full p-2"
-              placeholder="電話番号（任意）"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <input
-              className="border w-full p-2"
-              placeholder="メールアドレス *"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <div className="flex gap-2 pt-2">
-              <button className="border px-3 py-1 rounded" onClick={() => setOpen(false)}>
-                閉じる
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setOpen(false)}>
+          <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            {/* ===== EDITABLE: UI (start) ===== */}
+            <div className="modal-header">
+              <h2 id="modal-title" className="modal-title">
+                <svg className="icon icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                ご予約情報の入力
+              </h2>
+              <p className="modal-subtitle">
+                以下の情報をご入力ください
+              </p>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="customer-name" className="form-label">
+                  お名前 <span className="required">*</span>
+                </label>
+                <input
+                  id="customer-name"
+                  type="text"
+                  className="form-input"
+                  placeholder="山田 太郎"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  aria-required="true"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="customer-phone" className="form-label">
+                  電話番号 <span className="optional">（任意）</span>
+                </label>
+                <input
+                  id="customer-phone"
+                  type="tel"
+                  className="form-input"
+                  placeholder="090-1234-5678"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="customer-email" className="form-label">
+                  メールアドレス <span className="required">*</span>
+                </label>
+                <input
+                  id="customer-email"
+                  type="email"
+                  className="form-input"
+                  placeholder="example@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  aria-required="true"
+                />
+                <p className="form-help">確認メールをお送りします</p>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                type="button"
+                className="btn btn-secondary" 
+                onClick={() => setOpen(false)}
+              >
+                キャンセル
               </button>
               <button
-                className="border px-3 py-1 rounded"
+                type="button"
+                className="btn btn-primary"
                 onClick={submit}
                 disabled={!name || !email}
+                aria-disabled={!name || !email}
               >
-                送信
+                <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                予約を確定する
               </button>
             </div>
-            {msg && <p className="text-sm pt-1">{msg}</p>}
+
+            {msg && (
+              <div className={`message ${msg.includes('確定') ? 'message-success' : msg.includes('失敗') ? 'message-error' : 'message-info'}`} role="status" aria-live="polite">
+                {msg}
+              </div>
+            )}
+            {/* ===== EDITABLE: UI (end) ===== */}
           </div>
         </div>
       )}
@@ -181,64 +249,146 @@ export default function Page() {
   );
 
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">整体院 予約デモ</h1>
+    <>
+      {/* ===== EDITABLE: UI (start) ===== */}
+      <div className="page-container">
+        <header className="page-header">
+          <div className="header-content">
+            <div className="header-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="page-title">オンライン予約</h1>
+              <p className="page-subtitle">ご希望の店舗とスタッフをお選びください</p>
+            </div>
+          </div>
+        </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <label className="space-y-1">
-          <div className="text-sm text-gray-600">店舗</div>
-          <select
-            className="w-full border rounded-md p-2"
-            value={store}
-            onChange={(e) => { setStore(e.target.value); setPerson(''); }}
-          >
-            <option value="">選択してください</option>
-            {stores.map((s) => (
-              <option key={s.store_id} value={s.store_id}>
-                {s.store_id}：{s.name ?? ''}
-              </option>
-            ))}
-          </select>
-        </label>
+        <main className="page-main">
+          <section className="filter-section">
+            <h2 className="section-title">
+              <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              条件を選択
+            </h2>
+            
+            <div className="filter-grid">
+              <div className="form-group">
+                <label htmlFor="store-select" className="form-label">
+                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  店舗
+                </label>
+                <select
+                  id="store-select"
+                  className="form-select"
+                  value={store}
+                  onChange={(e) => { setStore(e.target.value); setPerson(''); }}
+                  aria-label="店舗を選択"
+                >
+                  <option value="">店舗を選択してください</option>
+                  {stores.map((s) => (
+                    <option key={s.store_id} value={s.store_id}>
+                      {s.name ?? s.store_id}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        <label className="space-y-1">
-          <div className="text-sm text-gray-600">スタッフ</div>
-          <select
-            className="w-full border rounded-md p-2"
-            value={person}
-            onChange={(e) => setPerson(e.target.value)}
-            disabled={!store}
-          >
-            <option value="">選択してください</option>
-            {staffOfStore.map((m) => (
-              <option key={m.staff_id} value={m.staff_id}>
-                {m.display_name ?? m.staff_id}
-              </option>
-            ))}
-          </select>
-        </label>
+              <div className="form-group">
+                <label htmlFor="staff-select" className="form-label">
+                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  担当スタッフ
+                </label>
+                <select
+                  id="staff-select"
+                  className="form-select"
+                  value={person}
+                  onChange={(e) => setPerson(e.target.value)}
+                  disabled={!store}
+                  aria-label="スタッフを選択"
+                >
+                  <option value="">スタッフを選択してください</option>
+                  {staffOfStore.map((m) => (
+                    <option key={m.staff_id} value={m.staff_id}>
+                      {m.display_name ?? m.staff_id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section className="slots-section">
+            <h2 className="section-title">
+              <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              予約可能な時間枠
+            </h2>
+
+            {(!store || !person) ? (
+              <div className="empty-state">
+                <svg className="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="empty-text">店舗と担当スタッフを選択すると、<br />予約可能な時間枠が表示されます</p>
+              </div>
+            ) : slots.length === 0 ? (
+              <div className="empty-state">
+                <svg className="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="empty-text">現在予約可能な時間枠はありません</p>
+              </div>
+            ) : (
+              <ul className="slots-list">
+                {slots.map((sl) => (
+                  <li key={sl.slot_id} className="slot-item">
+                    <div className="slot-time">
+                      <svg className="icon slot-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <div className="time-range">
+                          {fmtJST(sl.start_at_utc).split(' ')[1]} - {fmtJST(sl.end_at_utc).split(' ')[1]}
+                        </div>
+                        <div className="time-date">
+                          {fmtJST(sl.start_at_utc).split(' ')[0]}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {sl.status === 'open' ? (
+                      <BookButton slot={sl} onBooked={fetchSlots} />
+                    ) : (
+                      <span className="badge badge-booked">
+                        <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        予約済み
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </main>
+
+        <footer className="page-footer">
+          <p className="footer-text">
+            ご不明な点がございましたら、お気軽にお問い合わせください
+          </p>
+        </footer>
       </div>
-
-      <div className="space-y-2">
-        <div className="text-sm text-gray-600">空き枠（本日以降）</div>
-        <ul className="divide-y rounded-md border">
-          {(!store || !person) && (
-            <li className="p-3 text-gray-500">店舗とスタッフを選ぶと表示されます</li>
-          )}
-          {slots.map((sl) => (
-            <li key={sl.slot_id} className="p-3 flex items-center justify-between gap-3">
-              <span>{fmtJST(sl.start_at_utc)} - {fmtJST(sl.end_at_utc)}</span>
-              {sl.status === 'open' ? (
-                <BookButton slot={sl} onBooked={fetchSlots} />
-              ) : (
-                <span className="text-sm px-2 py-0.5 rounded bg-gray-200 text-gray-600">
-                  booked
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+      {/* ===== EDITABLE: UI (end) ===== */}
+    </>
   );
 }
