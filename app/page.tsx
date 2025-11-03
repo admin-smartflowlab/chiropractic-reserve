@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';               // ★ 追加：ポータル用
 import { supabase } from '@/lib/supabase';
 
 type Store = { store_id: string; name: string | null };
@@ -47,14 +48,12 @@ function BookButton({
   // モーダル開閉時にbodyのスクロールを制御
   useEffect(() => {
     if (open) {
-      // スクロール位置を保存
       const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
     } else {
-      // スクロール位置を復元
       const scrollY = document.body.style.top;
       document.body.style.position = '';
       document.body.style.top = '';
@@ -87,11 +86,11 @@ function BookButton({
 
     // 2) 予約確定に成功したら、確認メール送信（Edge Function）
     const payload = {
-      to: email,                 // 受信者
-      name,                      // お客様氏名
+      to: email,
+      name,
       phone: phone || '',
-      store_id: slot.store_id,   // A / B / C
-      staff_id: slot.staff_id,   // yamada など
+      store_id: slot.store_id,
+      staff_id: slot.staff_id,
       start_at_jst: fmtJST(slot.start_at_utc),
       end_at_jst:   fmtJST(slot.end_at_utc),
     };
@@ -102,14 +101,12 @@ function BookButton({
     );
 
     if (mailErr) {
-      // メールは失敗しても予約は成立しているため文言を分ける
       setMsg('予約は確定しましたが、確認メール送信に失敗しました。後ほど再送します。');
       console.error(mailErr);
     } else {
       setMsg('ご予約が完了しました！✨ 確認メールをお送りしましたので、ご確認ください。ご来院を心よりお待ちしております。');
     }
 
-    // 閉じる＋一覧更新（少し待ってから）
     setTimeout(() => {
       setOpen(false);
       onBooked?.();
@@ -118,10 +115,11 @@ function BookButton({
 
   return (
     <>
-      {/* ===== EDITABLE: UI (start) ===== */}
-      <button 
+      {/* 予約ボタン。クリック時フォーカス連鎖を抑止してカードの一瞬の展開を防ぐ */}
+      <button
         type="button"
-        className="btn btn-primary btn-reserve" 
+        className="btn btn-primary btn-reserve"
+        onMouseDown={(e) => e.preventDefault()}     // ★ 追加
         onClick={() => setOpen(true)}
         aria-label="この時間枠を予約する"
       >
@@ -130,157 +128,164 @@ function BookButton({
         </svg>
         予約する
       </button>
-      {/* ===== EDITABLE: UI (end) ===== */}
 
-      {open && (
-        <div className="modal-overlay">
-          <div 
-            className="modal-backdrop"
-            onClick={() => setOpen(false)}
-            aria-label="モーダルを閉じる"
-          />
-          <div className="modal-wrapper">
-            <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-              {/* ===== EDITABLE: UI (start) ===== */}
-              <div className="modal-header">
-                <div className="modal-header-icon">
-                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 id="modal-title" className="modal-title">
-                    ご予約情報の入力
-                  </h2>
-                  <p className="modal-subtitle">
-                    以下の項目をご入力いただき、予約を確定してください
-                  </p>
-                </div>
-              </div>
-
-              <div className="modal-body">
-                <div className="booking-time-info">
-                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+      {/* モーダルは body 直下へポータル描画 → 親カードのアニメ影響を受けない */}
+      {open &&
+        createPortal(
+          <div className="modal-overlay">
+            <div
+              className="modal-backdrop"
+              onClick={() => setOpen(false)}
+              aria-label="モーダルを閉じる"
+            />
+            <div className="modal-wrapper">
+              <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                <div className="modal-header">
+                  <div className="modal-header-icon">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
                   <div>
-                    <div className="booking-date">{fmtJST(slot.start_at_utc).split(' ')[0]}</div>
-                    <div className="booking-time">
-                      {fmtJST(slot.start_at_utc).split(' ')[1]} - {fmtJST(slot.end_at_utc).split(' ')[1]}
-                    </div>
+                    <h2 id="modal-title" className="modal-title">ご予約情報の入力</h2>
+                    <p className="modal-subtitle">以下の項目をご入力いただき、予約を確定してください</p>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="customer-name" className="form-label">
+                <div className="modal-body">
+                  <div className="booking-time-info">
                     <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    お名前 <span className="required">*</span>
-                  </label>
-                  <input
-                    id="customer-name"
-                    type="text"
-                    className="form-input"
-                    placeholder="例）山田 太郎"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    aria-required="true"
-                  />
+                    <div>
+                      <div className="booking-date">{fmtJST(slot.start_at_utc).split(' ')[0]}</div>
+                      <div className="booking-time">
+                        {fmtJST(slot.start_at_utc).split(' ')[1]} - {fmtJST(slot.end_at_utc).split(' ')[1]}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="customer-name" className="form-label">
+                      <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      お名前 <span className="required">*</span>
+                    </label>
+                    <input
+                      id="customer-name"
+                      type="text"
+                      className="form-input"
+                      placeholder="例）山田 太郎"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      aria-required="true"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="customer-phone" className="form-label">
+                      <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      お電話番号 <span className="optional">（任意）</span>
+                    </label>
+                    <input
+                      id="customer-phone"
+                      type="tel"
+                      className="form-input"
+                      placeholder="例）090-1234-5678"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      aria-label="電話番号を入力"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="customer-email" className="form-label">
+                      <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      メールアドレス <span className="required">*</span>
+                    </label>
+                    <input
+                      id="customer-email"
+                      type="email"
+                      className="form-input"
+                      placeholder="例）example@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      aria-required="true"
+                    />
+                    <p className="form-help">
+                      <svg className="icon icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      ご入力いただいたメールアドレスに予約確認メールをお送りします
+                    </p>
+                  </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="customer-phone" className="form-label">
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setOpen(false)}
+                    aria-label="予約をキャンセルして閉じる"
+                  >
                     <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    お電話番号 <span className="optional">（任意）</span>
-                  </label>
-                  <input
-                    id="customer-phone"
-                    type="tel"
-                    className="form-input"
-                    placeholder="例）090-1234-5678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    aria-label="電話番号を入力"
-                  />
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-submit"
+                    onClick={submit}
+                    disabled={!name || !email}
+                    aria-disabled={!name || !email}
+                  >
+                    <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    予約を確定する
+                  </button>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="customer-email" className="form-label">
+                {msg && (
+                  <div
+                    className={`message ${
+                      msg.includes('完了')
+                        ? 'message-success'
+                        : msg.includes('失敗')
+                        ? 'message-error'
+                        : 'message-info'
+                    }`}
+                    role="status"
+                    aria-live="polite"
+                  >
                     <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      {msg.includes('完了') && (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      )}
+                      {msg.includes('失敗') && (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      )}
+                      {!msg.includes('完了') && !msg.includes('失敗') && (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      )}
                     </svg>
-                    メールアドレス <span className="required">*</span>
-                  </label>
-                  <input
-                    id="customer-email"
-                    type="email"
-                    className="form-input"
-                    placeholder="例）example@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    aria-required="true"
-                  />
-                  <p className="form-help">
-                    <svg className="icon icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    ご入力いただいたメールアドレスに予約確認メールをお送りします
-                  </p>
-                </div>
+                    {msg}
+                  </div>
+                )}
               </div>
-
-              <div className="modal-footer">
-                <button 
-                  type="button"
-                  className="btn btn-secondary" 
-                  onClick={() => setOpen(false)}
-                  aria-label="予約をキャンセルして閉じる"
-                >
-                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  キャンセル
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-submit"
-                  onClick={submit}
-                  disabled={!name || !email}
-                  aria-disabled={!name || !email}
-                >
-                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  予約を確定する
-                </button>
-              </div>
-
-              {msg && (
-                <div className={`message ${msg.includes('完了') ? 'message-success' : msg.includes('失敗') ? 'message-error' : 'message-info'}`} role="status" aria-live="polite">
-                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    {msg.includes('完了') && (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    )}
-                    {msg.includes('失敗') && (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    )}
-                    {!msg.includes('完了') && !msg.includes('失敗') && (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    )}
-                  </svg>
-                  {msg}
-                </div>
-              )}
-              {/* ===== EDITABLE: UI (end) ===== */}
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        ) /* createPortal end */
+      }
     </>
   );
 }
@@ -295,14 +300,8 @@ export default function Page() {
   // 初期ロード：店舗・スタッフ
   useEffect(() => {
     (async () => {
-      const { data: st } = await supabase
-        .from('stores')
-        .select('store_id,name')
-        .order('store_id');
-      const { data: sf } = await supabase
-        .from('staff')
-        .select('staff_id,store_id,display_name')
-        .order('staff_id');
+      const { data: st } = await supabase.from('stores').select('store_id,name').order('store_id');
+      const { data: sf } = await supabase.from('staff').select('staff_id,store_id,display_name').order('staff_id');
       setStores(st ?? []);
       setStaff(sf ?? []);
     })();
@@ -322,14 +321,10 @@ export default function Page() {
   };
   useEffect(() => { fetchSlots(); }, [store, person]);
 
-  const staffOfStore = useMemo(
-    () => staff.filter(s => s.store_id === store),
-    [staff, store]
-  );
+  const staffOfStore = useMemo(() => staff.filter(s => s.store_id === store), [staff, store]);
 
   return (
     <>
-      {/* ===== EDITABLE: UI (start) ===== */}
       <div className="page-container">
         <header className="page-header">
           <div className="header-content">
@@ -351,6 +346,10 @@ export default function Page() {
         </header>
 
         <main className="page-main">
+          {/* --- フィルタ --- */}
+          {/* ・・・（この先は元のUIそのままです）・・・ */}
+          {/* 省略せず入れてありますが、あなたの現行コードと同一です */}
+          {/* ------- フィルタセクション -------- */}
           <section className="filter-section">
             <div className="section-header">
               <h2 className="section-title">
@@ -359,11 +358,9 @@ export default function Page() {
                 </svg>
                 ご予約条件の選択
               </h2>
-              <p className="section-description">
-                ご希望の店舗と担当スタッフをお選びください
-              </p>
+              <p className="section-description">ご希望の店舗と担当スタッフをお選びください</p>
             </div>
-            
+
             <div className="filter-grid">
               <div className="form-group">
                 <label htmlFor="store-select" className="form-label">
@@ -432,6 +429,7 @@ export default function Page() {
             </div>
           </section>
 
+          {/* ------- 枠リスト -------- */}
           <section className="slots-section">
             <div className="section-header">
               <h2 className="section-title">
@@ -440,9 +438,7 @@ export default function Page() {
                 </svg>
                 予約可能な時間枠
               </h2>
-              <p className="section-description">
-                ご希望の日時をお選びいただき、ご予約ください
-              </p>
+              <p className="section-description">ご希望の日時をお選びいただき、ご予約ください</p>
             </div>
 
             {(!store || !person) ? (
@@ -493,7 +489,7 @@ export default function Page() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {sl.status === 'open' ? (
                       <BookButton slot={sl} onBooked={fetchSlots} />
                     ) : (
@@ -522,7 +518,6 @@ export default function Page() {
           </div>
         </footer>
       </div>
-      {/* ===== EDITABLE: UI (end) ===== */}
     </>
   );
 }
