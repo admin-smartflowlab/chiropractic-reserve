@@ -113,7 +113,7 @@ function BookButton({
     setTimeout(() => {
       setOpen(false);
       onBooked?.();
-    }, 1200);
+    }, 1500);
   };
 
   return (

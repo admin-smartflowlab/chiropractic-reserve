@@ -80,6 +80,7 @@
   --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --transition-instant: 100ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================
@@ -776,7 +777,7 @@ input, select {
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  animation: fadeIn var(--transition-base);
+  animation: fadeIn var(--transition-instant);
   pointer-events: auto;
 }
 
@@ -786,7 +787,7 @@ input, select {
   background: rgba(30, 41, 59, 0.6);
   backdrop-filter: blur(8px);
   z-index: 1;
-  animation: fadeIn var(--transition-base);
+  animation: fadeIn var(--transition-instant);
 }
 
 @keyframes fadeIn {
@@ -818,7 +819,7 @@ input, select {
   max-width: 32rem;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
-  animation: slideUp var(--transition-slow);
+  animation: slideUp var(--transition-instant);
   position: relative;
   pointer-events: auto;
   margin: auto;
@@ -828,7 +829,7 @@ input, select {
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(2rem) scale(0.95);
+    transform: translateY(0.5rem) scale(0.98);
   }
   to {
     opacity: 1;
@@ -936,7 +937,7 @@ input, select {
   border-radius: var(--radius-xl);
   font-size: 0.875rem;
   line-height: 1.6;
-  animation: slideDown var(--transition-base);
+  animation: slideDown var(--transition-fast);
   display: flex;
   align-items: flex-start;
   gap: var(--space-md);
