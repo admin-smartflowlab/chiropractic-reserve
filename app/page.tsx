@@ -47,11 +47,25 @@ function BookButton({
   // モーダル開閉時にbodyのスクロールを制御
   useEffect(() => {
     if (open) {
+      // スクロール位置を保存
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
     } else {
+      // スクロール位置を復元
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
     return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
     };
   }, [open]);
@@ -119,105 +133,104 @@ function BookButton({
       {/* ===== EDITABLE: UI (end) ===== */}
 
       {open && (
-        <div 
-          className="modal-overlay" 
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setOpen(false);
-            }
-          }}
-        >
-          <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            {/* ===== EDITABLE: UI (start) ===== */}
-            <div className="modal-header">
-              <h2 id="modal-title" className="modal-title">
-                <svg className="icon icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                ご予約情報の入力
-              </h2>
-              <p className="modal-subtitle">
-                以下の情報をご入力ください
-              </p>
+        <div className="modal-overlay">
+          <div 
+            className="modal-backdrop"
+            onClick={() => setOpen(false)}
+          />
+          <div className="modal-wrapper">
+            <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+              {/* ===== EDITABLE: UI (start) ===== */}
+              <div className="modal-header">
+                <h2 id="modal-title" className="modal-title">
+                  <svg className="icon icon-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  ご予約情報の入力
+                </h2>
+                <p className="modal-subtitle">
+                  以下の情報をご入力ください
+                </p>
+              </div>
+
+              <div className="modal-body">
+                <div className="form-group">
+                  <label htmlFor="customer-name" className="form-label">
+                    お名前 <span className="required">*</span>
+                  </label>
+                  <input
+                    id="customer-name"
+                    type="text"
+                    className="form-input"
+                    placeholder="山田 太郎"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    aria-required="true"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="customer-phone" className="form-label">
+                    電話番号 <span className="optional">（任意）</span>
+                  </label>
+                  <input
+                    id="customer-phone"
+                    type="tel"
+                    className="form-input"
+                    placeholder="090-1234-5678"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="customer-email" className="form-label">
+                    メールアドレス <span className="required">*</span>
+                  </label>
+                  <input
+                    id="customer-email"
+                    type="email"
+                    className="form-input"
+                    placeholder="example@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    aria-required="true"
+                  />
+                  <p className="form-help">確認メールをお送りします</p>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  onClick={() => setOpen(false)}
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={submit}
+                  disabled={!name || !email}
+                  aria-disabled={!name || !email}
+                >
+                  <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  予約を確定する
+                </button>
+              </div>
+
+              {msg && (
+                <div className={`message ${msg.includes('確定') ? 'message-success' : msg.includes('失敗') ? 'message-error' : 'message-info'}`} role="status" aria-live="polite">
+                  {msg}
+                </div>
+              )}
+              {/* ===== EDITABLE: UI (end) ===== */}
             </div>
-
-            <div className="modal-body">
-              <div className="form-group">
-                <label htmlFor="customer-name" className="form-label">
-                  お名前 <span className="required">*</span>
-                </label>
-                <input
-                  id="customer-name"
-                  type="text"
-                  className="form-input"
-                  placeholder="山田 太郎"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  aria-required="true"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="customer-phone" className="form-label">
-                  電話番号 <span className="optional">（任意）</span>
-                </label>
-                <input
-                  id="customer-phone"
-                  type="tel"
-                  className="form-input"
-                  placeholder="090-1234-5678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="customer-email" className="form-label">
-                  メールアドレス <span className="required">*</span>
-                </label>
-                <input
-                  id="customer-email"
-                  type="email"
-                  className="form-input"
-                  placeholder="example@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  aria-required="true"
-                />
-                <p className="form-help">確認メールをお送りします</p>
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button 
-                type="button"
-                className="btn btn-secondary" 
-                onClick={() => setOpen(false)}
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={submit}
-                disabled={!name || !email}
-                aria-disabled={!name || !email}
-              >
-                <svg className="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                予約を確定する
-              </button>
-            </div>
-
-            {msg && (
-              <div className={`message ${msg.includes('確定') ? 'message-success' : msg.includes('失敗') ? 'message-error' : 'message-info'}`} role="status" aria-live="polite">
-                {msg}
-              </div>
-            )}
-            {/* ===== EDITABLE: UI (end) ===== */}
           </div>
         </div>
       )}

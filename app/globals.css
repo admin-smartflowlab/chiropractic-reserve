@@ -71,6 +71,10 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 
                'Hiragino Sans', Meiryo, sans-serif;
@@ -79,6 +83,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 button {
@@ -98,13 +103,14 @@ input, select {
 }
 
 /* ============================================
-   ページレイアウト
+   ページレイアウト - 完全中央配置
    ============================================ */
 .page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(to bottom, #f0fdfa 0%, var(--color-bg) 100%);
+  width: 100%;
 }
 
 .page-header {
@@ -112,14 +118,17 @@ input, select {
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   padding: var(--space-xl) var(--space-lg);
+  width: 100%;
 }
 
 .header-content {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
   gap: var(--space-lg);
+  padding: 0 var(--space-lg);
 }
 
 .header-icon {
@@ -168,6 +177,7 @@ input, select {
   border-top: 1px solid var(--color-border);
   padding: var(--space-xl) var(--space-lg);
   text-align: center;
+  width: 100%;
 }
 
 .footer-text {
@@ -187,6 +197,7 @@ input, select {
   padding: var(--space-xl);
   box-shadow: var(--shadow-md);
   margin-bottom: var(--space-2xl);
+  width: 100%;
 }
 
 .section-title {
@@ -213,6 +224,7 @@ input, select {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-xl);
+  width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -225,6 +237,7 @@ input, select {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  width: 100%;
 }
 
 .form-label {
@@ -301,6 +314,7 @@ input, select {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  width: 100%;
 }
 
 .slot-item {
@@ -313,6 +327,7 @@ input, select {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   transition: all var(--transition-base);
+  width: 100%;
 }
 
 .slot-item:hover {
@@ -440,6 +455,7 @@ input, select {
 .empty-state {
   text-align: center;
   padding: var(--space-3xl) var(--space-lg);
+  width: 100%;
 }
 
 .empty-icon {
@@ -457,19 +473,37 @@ input, select {
 }
 
 /* ============================================
-   モーダル
+   モーダル - 完全固定レイアウト
    ============================================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  z-index: 9999;
   animation: fadeIn var(--transition-base);
+  pointer-events: auto;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+.modal-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  z-index: 2;
+  pointer-events: none;
   overflow-y: auto;
 }
 
@@ -492,6 +526,7 @@ input, select {
   overflow-y: auto;
   animation: slideUp var(--transition-slow);
   position: relative;
+  pointer-events: auto;
   margin: auto;
 }
 
