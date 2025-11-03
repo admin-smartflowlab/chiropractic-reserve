@@ -173,6 +173,8 @@ input, select {
 .footer-text {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* ============================================
@@ -466,8 +468,9 @@ input, select {
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  z-index: 50;
+  z-index: 9999;
   animation: fadeIn var(--transition-base);
+  overflow-y: auto;
 }
 
 @keyframes fadeIn {
@@ -485,9 +488,11 @@ input, select {
   box-shadow: var(--shadow-xl);
   width: 100%;
   max-width: 28rem;
-  max-height: 90vh;
+  max-height: calc(100vh - 2rem);
   overflow-y: auto;
   animation: slideUp var(--transition-slow);
+  position: relative;
+  margin: auto;
 }
 
 @keyframes slideUp {
@@ -627,6 +632,17 @@ input, select {
   
   .time-range {
     font-size: 1.25rem;
+  }
+}
+
+/* モバイルでのモーダルフッター調整 */
+@media (max-width: 639px) {
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
   }
 }
 

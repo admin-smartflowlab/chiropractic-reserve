@@ -15,7 +15,7 @@ type Slot  = {
   status: 'open' | 'booked';
 };
 
-// 表示用：UTC → JST で "YYYY-MM-DD HH:mm" 形式の文字列
+// 表示用:UTC → JST で "YYYY-MM-DD HH:mm" 形式の文字列
 function fmtJST(iso: string) {
   return new Date(iso)
     .toLocaleString('ja-JP', {
@@ -43,6 +43,18 @@ function BookButton({
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [msg, setMsg]     = useState('');
+
+  // モーダル開閉時にbodyのスクロールを制御
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
 
   const submit = async () => {
     setMsg('送信中…');
@@ -107,7 +119,14 @@ function BookButton({
       {/* ===== EDITABLE: UI (end) ===== */}
 
       {open && (
-        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setOpen(false)}>
+        <div 
+          className="modal-overlay" 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setOpen(false);
+            }
+          }}
+        >
           <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
             {/* ===== EDITABLE: UI (start) ===== */}
             <div className="modal-header">
